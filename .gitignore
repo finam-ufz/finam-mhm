@@ -126,3 +126,6 @@ docs/source/generated/
 *.DS_Store
 
 *.zip
+
+# local version for user install
+setup.py

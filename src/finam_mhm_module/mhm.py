@@ -34,9 +34,12 @@ class Mhm(ATimeComponent):
         mp.run.prepare_domain()
         # set time
         year, month, day, hour = mp.run.current_time()
+        print("time", year, month, day, hour)
+        if hour == -1:
+            hour = 0
         self._time = datetime(year=year, month=month, day=day, hour=hour)
         # get grid info
-        ncols, nrows, ncells, xll, yll, cell_size, no_data = mp.get.L1_domain_info()
+        ncols, nrows, ncells, xll, yll, cell_size, no_data = mp.get.l1_domain_info()
         self.no_data = no_data
         self.gridspec = GridSpec(
             ncols=ncols, nrows=nrows, cell_size=cell_size, xll=xll, yll=yll

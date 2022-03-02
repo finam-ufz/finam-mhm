@@ -9,16 +9,17 @@ from finam.adapters import time, base
 from finam.core.schedule import Composition
 from finam.modules.visual import time_series
 from finam_mhm_module import Mhm
-
+from matplotlib import pyplot as plt
 
 def grid_select(grid):
-    return grid.get(col=3, row=5)
+    col, row = 3, 5
+    return grid[col + row * 5]
 
 
 plot = time_series.TimeSeriesView(
     start=datetime(1990, 1, 1),
     step=timedelta(days=1),
-    inputs=["Linear (1)"],
+    inputs=["Runoff"],
     intervals=[1],
 )
 
@@ -28,6 +29,7 @@ composition = Composition([mhm, plot])
 composition.initialize()
 
 grid_value = mhm.outputs["runoff"] >> base.GridToValue(func=grid_select)
-grid_value >> time.LinearInterpolation() >> plot.inputs["Linear (1)"]
+grid_value >> time.LinearInterpolation() >> plot.inputs["Runoff"]
 
 composition.run(datetime(1991, 1, 1))
+plt.show()
