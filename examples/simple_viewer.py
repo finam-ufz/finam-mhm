@@ -1,19 +1,20 @@
 """
 Simple coupling setup using live view modules.
 """
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 
 import numpy as np
-
-from finam.adapters import time, base
+from finam.adapters import base, time
 from finam.core.schedule import Composition
 from finam.modules.visual import time_series
-from finam_mhm_module import Mhm
 from matplotlib import pyplot as plt
+
+from finam_mhm_module import Mhm
+
 
 def grid_select(grid):
     col, row = 3, 5
-    return grid[col + row * 5]
+    return grid[col * 9 + row]
 
 
 plot = time_series.TimeSeriesView(
@@ -31,5 +32,5 @@ composition.initialize()
 grid_value = mhm.outputs["runoff"] >> base.GridToValue(func=grid_select)
 grid_value >> time.LinearInterpolation() >> plot.inputs["Runoff"]
 
-composition.run(datetime(1991, 1, 1))
+composition.run(datetime(1992, 1, 1))
 plt.show()

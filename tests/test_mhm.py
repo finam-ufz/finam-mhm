@@ -1,7 +1,7 @@
 import unittest
-import numpy as np
-
 from datetime import datetime, timedelta
+
+import numpy as np
 
 
 class TestMHM(unittest.TestCase):
