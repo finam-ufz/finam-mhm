@@ -42,8 +42,7 @@ class Mhm(ATimeComponent):
         # set time
         year, month, day, hour = mp.run.current_time()
         # print("time", year, month, day, hour)
-        if hour == -1:
-            hour = 0
+        hour = max(hour, 0)  # fix for first time step
         self._time = datetime(year=year, month=month, day=day, hour=hour)
         # get grid info l0
         ncols, nrows, __, xll, yll, cell_size, no_data = mp.get.l0_domain_info()
