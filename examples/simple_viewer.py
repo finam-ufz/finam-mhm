@@ -29,7 +29,7 @@ mhm = Mhm(cwd="../../MHM/mhm")
 composition = Composition([mhm, plot])
 composition.initialize()
 
-grid_value = mhm.outputs["runoff"] >> base.GridToValue(func=grid_select)
+grid_value = mhm.outputs["L1_TOTAL_RUNOFF"] >> base.GridToValue(func=grid_select)
 grid_value >> time.LinearInterpolation() >> plot.inputs["Runoff"]
 
 composition.run(datetime(1992, 1, 1))

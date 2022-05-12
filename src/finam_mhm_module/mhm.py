@@ -11,6 +11,33 @@ from finam.tools.cwd_helper import execute_in_cwd
 
 
 class Mhm(ATimeComponent):
+    OUTPUT_NAMES = [
+        "L0_GRIDDED_LAI",
+        "L1_FSEALED",
+        "L1_FNOTSEALED",
+        "L1_INTER",
+        "L1_SNOWPACK",
+        "L1_SEALSTW",
+        "L1_UNSATSTW",
+        "L1_SATSTW",
+        "L1_NEUTRONS",
+        "L1_PET_CALC",
+        "L1_AETCANOPY",
+        "L1_AETSEALED",
+        "L1_TOTAL_RUNOFF",
+        "L1_RUNOFFSEAL",
+        "L1_FASTRUNOFF",
+        "L1_SLOWRUNOFF",
+        "L1_BASEFLOW",
+        "L1_PERCOL",
+        "L1_PREEFFECT",
+        "L1_SOILMOIST_VOL_ALL",
+        "L11_QMOD",
+        "L11_QOUT",
+        "L11_QTIN",
+        "L11_QTR",
+    ]
+
     def __init__(
         self,
         namelist_mhm="mhm.nml",
@@ -18,7 +45,9 @@ class Mhm(ATimeComponent):
         namelist_mhm_output="mhm_outputs.nml",
         namelist_mrm_output="mrm_outputs.nml",
         cwd=".",
+        input_names=None,
     ):
+        self.INPUT_NAMES = [] if input_names is None else list(input_names)
         super(Mhm, self).__init__()
         self.namelist_mhm = namelist_mhm
         self.namelist_mhm_param = namelist_mhm_param
@@ -41,46 +70,50 @@ class Mhm(ATimeComponent):
         mp.run.prepare_domain()
         # set time
         year, month, day, hour = mp.run.current_time()
-        # print("time", year, month, day, hour)
         hour = max(hour, 0)  # fix for first time step
         self._time = datetime(year=year, month=month, day=day, hour=hour)
+        self.gridspec = {}
         # get grid info l0
         ncols, nrows, __, xll, yll, cell_size, no_data = mp.get.l0_domain_info()
         self.no_data = no_data
-        self.gridspec_l0 = GridSpec(
+        self.gridspec["L0"] = GridSpec(
             ncols=ncols, nrows=nrows, cell_size=cell_size, xll=xll, yll=yll
         )
         # get grid info l1
         ncols, nrows, __, xll, yll, cell_size, no_data = mp.get.l1_domain_info()
-        self.gridspec_l1 = GridSpec(
+        self.gridspec["L1"] = GridSpec(
             ncols=ncols, nrows=nrows, cell_size=cell_size, xll=xll, yll=yll
         )
         # get grid info l11
         ncols, nrows, __, xll, yll, cell_size, no_data = mp.get.l11_domain_info()
-        self.gridspec_l11 = GridSpec(
+        self.gridspec["L11"] = GridSpec(
             ncols=ncols, nrows=nrows, cell_size=cell_size, xll=xll, yll=yll
         )
         # get grid info l2
         ncols, nrows, __, xll, yll, cell_size, no_data = mp.get.l2_domain_info()
-        self.gridspec_l2 = GridSpec(
+        self.gridspec["L2"] = GridSpec(
             ncols=ncols, nrows=nrows, cell_size=cell_size, xll=xll, yll=yll
         )
-        self.outputs["runoff"] = Output()
-        # self.inputs["LAI"] = Input()
+        for var in self.OUTPUT_NAMES:
+            self.outputs[var] = Output()
+        for var in self.INPUT_NAMES:
+            self.inputs[var] = Input()
 
         self._status = ComponentStatus.INITIALIZED
 
     def connect(self):
         super().connect()
-        runoff = mp.get_variable("L1_total_runoff")
-        self._outputs["runoff"].push_data(
-            data=Grid(
-                spec=self.gridspec_l1,
-                no_data=self.no_data,
-                data=runoff.filled().reshape(-1),
-            ),
-            time=self.time,
-        )
+        for var in self.OUTPUT_NAMES:
+            if not self.outputs[var].has_targets:
+                continue
+            self.outputs[var].push_data(
+                data=Grid(
+                    spec=self.gridspec[var.split("_")[0]],
+                    no_data=self.no_data,
+                    data=mp.get_variable(var).filled().reshape(-1),
+                ),
+                time=self.time,
+            )
         self._status = ComponentStatus.CONNECTED
 
     def validate(self):
@@ -101,15 +134,17 @@ class Mhm(ATimeComponent):
         year, month, day, hour = mp.run.current_time()
         self._time = datetime(year=year, month=month, day=day, hour=hour)
         # push outputs
-        runoff = mp.get_variable("L1_total_runoff")
-        self._outputs["runoff"].push_data(
-            data=Grid(
-                spec=self.gridspec_l1,
-                no_data=self.no_data,
-                data=runoff.filled().reshape(-1),
-            ),
-            time=self.time,
-        )
+        for var in self.OUTPUT_NAMES:
+            if not self.outputs[var].has_targets:
+                continue
+            self.outputs[var].push_data(
+                data=Grid(
+                    spec=self.gridspec[var.split("_")[0]],
+                    no_data=self.no_data,
+                    data=mp.get_variable(var).filled().reshape(-1),
+                ),
+                time=self.time,
+            )
         self._status = ComponentStatus.UPDATED
 
     @execute_in_cwd
