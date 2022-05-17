@@ -4,6 +4,7 @@ FINAM mHM module.
 from datetime import datetime
 
 import mhm_pybind as mp
+import numpy as np
 from finam.core.interfaces import ComponentStatus
 from finam.core.sdk import ATimeComponent, Input, Output
 from finam.data.grid import Grid, GridSpec
@@ -73,24 +74,24 @@ class Mhm(ATimeComponent):
         hour = max(hour, 0)  # fix for first time step
         self._time = datetime(year=year, month=month, day=day, hour=hour)
         self.gridspec = {}
-        # get grid info l0
-        ncols, nrows, __, xll, yll, cell_size, no_data = mp.get.l0_domain_info()
+        # get grid info l0 (swap rows/cols to get "ij" indexing)
+        nrows, ncols, __, xll, yll, cell_size, no_data = mp.get.l0_domain_info()
         self.no_data = no_data
         self.gridspec["L0"] = GridSpec(
             ncols=ncols, nrows=nrows, cell_size=cell_size, xll=xll, yll=yll
         )
-        # get grid info l1
-        ncols, nrows, __, xll, yll, cell_size, no_data = mp.get.l1_domain_info()
+        # get grid info l1 (swap rows/cols to get "ij" indexing)
+        nrows, ncols, __, xll, yll, cell_size, no_data = mp.get.l1_domain_info()
         self.gridspec["L1"] = GridSpec(
             ncols=ncols, nrows=nrows, cell_size=cell_size, xll=xll, yll=yll
         )
-        # get grid info l11
-        ncols, nrows, __, xll, yll, cell_size, no_data = mp.get.l11_domain_info()
+        # get grid info l11 (swap rows/cols to get "ij" indexing)
+        nrows, ncols, __, xll, yll, cell_size, no_data = mp.get.l11_domain_info()
         self.gridspec["L11"] = GridSpec(
             ncols=ncols, nrows=nrows, cell_size=cell_size, xll=xll, yll=yll
         )
-        # get grid info l2
-        ncols, nrows, __, xll, yll, cell_size, no_data = mp.get.l2_domain_info()
+        # get grid info l2 (swap rows/cols to get "ij" indexing)
+        nrows, ncols, __, xll, yll, cell_size, no_data = mp.get.l2_domain_info()
         self.gridspec["L2"] = GridSpec(
             ncols=ncols, nrows=nrows, cell_size=cell_size, xll=xll, yll=yll
         )
@@ -110,7 +111,10 @@ class Mhm(ATimeComponent):
                 data=Grid(
                     spec=self.gridspec[var.split("_")[0]],
                     no_data=self.no_data,
-                    data=mp.get_variable(var).filled().reshape(-1),
+                    # flip upside down to use lower-left corner as origin
+                    data=np.flipud(
+                        mp.get_variable(var, indexing="ij").filled()
+                    ).reshape(-1),
                 ),
                 time=self.time,
             )
@@ -118,6 +122,7 @@ class Mhm(ATimeComponent):
 
     def validate(self):
         super().validate()
+        # TODO: add checks if connected outputs are compatible with process selection
         self._status = ComponentStatus.VALIDATED
 
     @execute_in_cwd
@@ -127,7 +132,6 @@ class Mhm(ATimeComponent):
         # Don't run further than mHM can
         if mp.run.finished():
             return
-
         mp.run.do_time_step()
         mp.run.write_output()  # do we want this here?
         # update time
@@ -141,7 +145,10 @@ class Mhm(ATimeComponent):
                 data=Grid(
                     spec=self.gridspec[var.split("_")[0]],
                     no_data=self.no_data,
-                    data=mp.get_variable(var).filled().reshape(-1),
+                    # flip upside down to use lower-left corner as origin
+                    data=np.flipud(
+                        mp.get_variable(var, indexing="ij").filled()
+                    ).reshape(-1),
                 ),
                 time=self.time,
             )
