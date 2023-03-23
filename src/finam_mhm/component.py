@@ -167,7 +167,6 @@ class MHM(fm.TimeComponent):
 
     @fm.tools.execute_in_cwd
     def _finalize(self):
-        with fm.tools.LogCStdOutStdErr(self.logger):
-            mhm.run.finalize_domain()
-            mhm.run.finalize()
-            mhm.model.finalize()
+        mhm.run.finalize_domain()
+        mhm.run.finalize()
+        mhm.model.finalize()
