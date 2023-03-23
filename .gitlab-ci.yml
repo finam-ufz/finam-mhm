@@ -7,9 +7,9 @@ stages:
 check:
   stage: build
   before_script:
-    - apt-get install gfortran netcdf-bin libnetcdf-dev libnetcdff-dev
+    - apt-get install gfortran gcc g++ netcdf-bin libnetcdf-dev libnetcdff-dev
     - pip3 install black numpy pandas
   script:
     - black --check --diff --color .
     - pip3 install --editable .[test]
-    - python -m pytest --cov finam_mhm_module --cov-report term-missing -v tests/
+    - python -m pytest --cov finam_mhm --cov-report term-missing -v tests/

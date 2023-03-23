@@ -24,6 +24,10 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+# local version for user install
+setup.py
+# info folder with testing scirpts
+info/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -45,6 +49,8 @@ nosetests.xml
 coverage.xml
 *.cover
 .hypothesis/
+/bench/
+/prof/
 
 # Translations
 *.mo
@@ -63,6 +69,7 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+docs/source/api/generated
 docs/output.txt
 
 # PyBuilder
@@ -88,12 +95,11 @@ celerybeat-schedule
 venv/
 ENV/
 
-# Spyder project settings
+# IDE project settings
 .spyderproject
 .spyproject
-
-# Rope project settings
 .ropeproject
+.vscode
 
 # mkdocs documentation
 /site
@@ -112,20 +118,17 @@ info/
 *.cpp
 
 # generated version file
-src/finam_mhm_module/_version.py
+src/finam_mhm/_version.py
 
 # generated docs
 docs/source/examples/
 docs/source/generated/
 
 /docs/build/
-/docs/finam_mhm_module.*
+/docs/finam_mhm.*
 /docs/modules.rst
 *.csv
 
 *.DS_Store
 
 *.zip
-
-# local version for user install
-setup.py
