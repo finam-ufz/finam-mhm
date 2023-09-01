@@ -3,9 +3,9 @@ FINAM mHM module.
 """
 from datetime import datetime, timedelta
 
-import numpy as np
 import finam as fm
 import mhm
+import numpy as np
 
 OUTPUT_META = {
     "L0_GRIDDED_LAI": dict(unit="1", long_name="leaf area index"),
@@ -45,8 +45,32 @@ OUTPUT_META = {
 
 INPUT_META = {
     "L0_GRIDDED_LAI": dict(unit="1", long_name="leaf area index"),
+    "METEO_PRE": dict(unit="mm", long_name="precipitation"),
+    "METEO_TEMP": dict(unit="degC", long_name="mean air temperature"),
+    "METEO_PET": dict(unit="mm", long_name="potential evapotranspiration"),
+    "METEO_TMIN": dict(unit="degC", long_name="minimum daily temperature"),
+    "METEO_TMAX": dict(unit="degC", long_name="maximum daily temperature"),
+    "METEO_NETRAD": dict(unit="W m-2", long_name="net radiation"),
+    "METEO_ABSVAPPRESS": dict(unit="Pa", long_name="vapour pressure"),
+    "METEO_WINDSPEED": dict(unit="m s-1", long_name="mean wind speed"),
+    "METEO_SSRD": dict(unit="W m-2", long_name="solar short wave radiation downward"),
+    "METEO_STRD": dict(unit="W m-2", long_name="surface thermal radiation downward"),
+    "METEO_TANN": dict(unit="degC", long_name="annual mean air temperature"),
 }
 """dict: meta information about available inputs in mHM."""
+
+
+def _get_grid_name(var):
+    grid_name = var.split("_")[0]
+    return "L1" if grid_name == "METEO" else grid_name
+
+
+def _get_var_name(var):
+    return "_".join(var.split("_")[1:])
+
+
+def _get_meteo_inputs(inputs):
+    {_get_var_name(var).lower(): var for var in inputs if var.startswith("METEO")}
 
 
 class MHM(fm.TimeComponent):
@@ -58,6 +82,7 @@ class MHM(fm.TimeComponent):
         namelist_mrm_output="mrm_outputs.nml",
         cwd=".",
         input_names=None,
+        meteo_time_step=None,
     ):
         super().__init__()
         self.OUTPUT_NAMES = list(OUTPUT_META)
@@ -66,7 +91,8 @@ class MHM(fm.TimeComponent):
         )
         for in_name in self.INPUT_NAMES:
             if in_name not in INPUT_META:
-                raise ValueError(f"mHM: input '{in_name}' is not available.")
+                msg = f"mHM: input '{in_name}' is not available."
+                raise ValueError(msg)
         self.namelist_mhm = namelist_mhm
         self.namelist_mhm_param = namelist_mhm_param
         self.namelist_mhm_output = namelist_mhm_output
@@ -74,21 +100,31 @@ class MHM(fm.TimeComponent):
         self.cwd = cwd  # needed for @fm.tools.execute_in_cwd
         # mHM always has hourly stepping
         self.step = timedelta(hours=1)
+        self.meteo_timestep = meteo_time_step
+        self.meteo_inputs = _get_meteo_inputs(self.INPUT_NAMES)
+
+        if self.meteo_inputs and self.meteo_timestep not in [1, 24]:
+            msg = (
+                "mHM: found meteo inputs but meteo time-step not valid, "
+                f"got {self.meteo_timestep}"
+            )
+            raise ValueError(msg)
 
     @property
     def next_time(self):
         """Next pull time."""
         return self.time + self.step
 
-    def _get(self, var):
-        value = mhm.get_variable(var)
-        value.fill_value = np.nan
-        return value.filled()
-
     @fm.tools.execute_in_cwd
     def _initialize(self):
         # only show errors
         mhm.model.set_verbosity(level=1)
+        # configure coupling
+        if self.meteo_inputs:
+            kwargs = {f"meteo_expect_{var}": True for var in self.meteo_inputs}
+            kwargs["couple_case"] = 1
+            kwargs["meteo_timestep"] = self.meteo_timestep
+            mhm.model.config_coupling(**kwargs)
         # init
         mhm.model.init(
             namelist_mhm=self.namelist_mhm,
@@ -127,20 +163,29 @@ class MHM(fm.TimeComponent):
         self.gridspec["L11"] = fm.EsriGrid(
             ncols=ncols, nrows=nrows, cellsize=cell_size, xllcorner=xll, yllcorner=yll
         )
-        print(self.gridspec["L11"].nrows)
-        print(self.gridspec["L11"].ncols)
-        print(self.gridspec["L11"].axes_names)
         # get grid info l2 (swap rows/cols to get "ij" indexing)
         nrows, ncols, __, xll, yll, cell_size, no_data = mhm.get.l2_domain_info()
         self.gridspec["L2"] = fm.EsriGrid(
             ncols=ncols, nrows=nrows, cellsize=cell_size, xllcorner=xll, yllcorner=yll
         )
         for var in self.OUTPUT_NAMES:
-            grid_name = var.split("_")[0]
-            self.outputs.add(name=var, time=self.time, grid=self.gridspec[grid_name], **OUTPUT_META[var])
+            grid_name = _get_grid_name(var)
+            self.outputs.add(
+                name=var,
+                time=self.time,
+                grid=self.gridspec[grid_name],
+                missing_value=self.no_data,
+                **OUTPUT_META[var],
+            )
         for var in self.INPUT_NAMES:
-            grid_name = var.split("_")[0]
-            self.inputs.add(name=var, time=self.time, grid=self.gridspec[grid_name], **INPUT_META[var])
+            grid_name = _get_grid_name(var)
+            self.inputs.add(
+                name=var,
+                time=self.time,
+                grid=self.gridspec[grid_name],
+                missing_value=self.no_data,
+                **INPUT_META[var],
+            )
         self.create_connector()
 
     def _connect(self, start_time):
@@ -152,6 +197,17 @@ class MHM(fm.TimeComponent):
         # Don't run further than mHM can
         if mhm.run.finished():
             return
+        # set meteo data
+        if self.meteo_inputs:
+            # every hour or every 24 hours
+            if self.time.hour % self.meteo_timestep == 0:
+                kwargs = {
+                    var: self.inputs[name].pull_data(self.time)
+                    for var, name in self.meteo_inputs.items()
+                }
+                kwargs["time"] = self.time
+                mhm.set_meteo(**kwargs)
+        # run mhm
         mhm.run.do_time_step()
         # update time
         year, month, day, hour = mhm.run.current_time()
@@ -161,7 +217,7 @@ class MHM(fm.TimeComponent):
             if not self.outputs[var].has_targets:
                 continue
             self.outputs[var].push_data(
-                data=self._get(var),
+                data=mhm.get_variable(var),
                 time=self.time,
             )
 
