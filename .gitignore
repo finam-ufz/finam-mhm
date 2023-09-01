@@ -123,6 +123,8 @@ src/finam_mhm/_version.py
 # generated docs
 docs/source/examples/
 docs/source/generated/
+examples/test_domain
+examples/qmod.nc
 
 /docs/build/
 /docs/finam_mhm.*
