@@ -48,13 +48,11 @@ Changelog = "https://git.ufz.de/FINAM/finam-mhm/-/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 doc = [
-  "sphinx>=5",
-  "pydata-sphinx-theme==0.11",
+  "sphinx>=6",
+  "pydata-sphinx-theme==0.13",
   "numpydoc>=1.1",
-  "sphinx-design>=0.3",
-  "myst-parser>=0.18",
-  "sphinxcontrib-mermaid>=0.7",
-  "ablog>=0.10",
+  "sphinx-design>=0.4",
+  "myst-parser>=1.0",
   "docutils>=0.18", # mdinclude with myst
 ]
 test = ["pytest-cov>=3"]
