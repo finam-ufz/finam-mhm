@@ -7,33 +7,41 @@ from pathlib import Path
 
 import finam as fm
 import finam_netcdf as fm_nc
-import finam_plot as fm_plt
 from mhm import download_test
 
 import finam_mhm as fm_mhm
 
+# start_date = datetime(1993, 1, 1)
+# end_date = datetime(1993, 12, 31)
 start_date = datetime(1990, 1, 1)
+end_date = datetime(1993, 12, 31)
 day = timedelta(days=1)
 here = Path(__file__).parent
 test_domain = here / "test_domain"
 shutil.rmtree(test_domain, ignore_errors=True)
 
-download_test(path=test_domain)
-mhm = fm_mhm.MHM(cwd=test_domain)
-runoff_viewer = fm_plt.ImagePlot(vmin=0.0, vmax=650, update_interval=24)
+download_test(path=test_domain, domain=1)
+
+pre_reader = fm_nc.NetCdfReader(test_domain / "input" / "meteo" / "pre" / "pre.nc")
+
+mhm = fm_mhm.MHM(
+    cwd=test_domain,
+    input_names=["METEO_PRE"],
+    meteo_timestep=24,
+    ignore_input_grid=True,
+)
 # netcdf writing files
 writer = fm_nc.NetCdfTimedWriter(
-    path=here / "qmod.nc",
+    path=here / "qmod_couple.nc",
     inputs={"QMOD": fm_nc.Layer(var="QMOD", xyz=("x", "y"))},
     time_var="time",
-    start=start_date,
     step=day,
 )
 
-composition = fm.Composition([mhm, writer, runoff_viewer])
+composition = fm.Composition([pre_reader, mhm, writer])
 composition.initialize()
 
+pre_reader["pre"] >> mhm.inputs["METEO_PRE"]
 mhm.outputs["L11_QMOD"] >> writer.inputs["QMOD"]
-mhm.outputs["L11_QMOD"] >> runoff_viewer.inputs["Grid"]
 
-composition.run(end_time=datetime(1991, 1, 1))
+composition.run(start_time=start_date, end_time=end_date)

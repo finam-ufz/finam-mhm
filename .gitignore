@@ -125,6 +125,7 @@ docs/source/examples/
 docs/source/generated/
 examples/test_domain
 examples/qmod.nc
+examples/qmod_couple.nc
 
 /docs/build/
 /docs/finam_mhm.*
