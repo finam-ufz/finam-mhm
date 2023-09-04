@@ -1,11 +1,11 @@
 """
 FINAM mHM module.
 """
+# pylint: disable=R1735
 from datetime import datetime, timedelta
 
 import finam as fm
 import mhm
-import numpy as np
 
 OUTPUT_META = {
     "L0_GRIDDED_LAI": dict(unit="1", long_name="leaf area index"),
@@ -70,10 +70,40 @@ def _get_var_name(var):
 
 
 def _get_meteo_inputs(inputs):
-    {_get_var_name(var).lower(): var for var in inputs if var.startswith("METEO")}
+    return {
+        _get_var_name(var).lower(): var for var in inputs if var.startswith("METEO")
+    }
 
 
 class MHM(fm.TimeComponent):
+    """
+    mHM FINAM compoment.
+
+    Parameters
+    ----------
+    namelist_mhm : str, optional
+        path to mHM configuration namelist, by default "mhm.nml"
+    namelist_mhm_param : str, optional
+        path to mHM parameter namelist, by default "mhm_parameter.nml"
+    namelist_mhm_output : str, optional
+        path to mHM output namelist, by default "mhm_outputs.nml"
+    namelist_mrm_output : str, optional
+        path to mRM output namelist, by default "mrm_outputs.nml"
+    cwd : str, optional
+        desired working directory, by default "."
+    input_names : list of str, optional
+        Names of input variables coupled via FINAM, by default None
+    meteo_timestep : int, optional
+        meteo coupling time-step in hours (1 or 24), by default None
+
+    Raises
+    ------
+    ValueError
+        If a given input name is invalid.
+    ValueError
+        If the given meteo time-step is invalid
+    """
+
     def __init__(
         self,
         namelist_mhm="mhm.nml",
@@ -82,9 +112,12 @@ class MHM(fm.TimeComponent):
         namelist_mrm_output="mrm_outputs.nml",
         cwd=".",
         input_names=None,
-        meteo_time_step=None,
+        meteo_timestep=None,
     ):
         super().__init__()
+        self.gridspec = {}
+        self.no_data = None
+
         self.OUTPUT_NAMES = list(OUTPUT_META)
         self.INPUT_NAMES = (
             [] if input_names is None else [n.upper() for n in input_names]
@@ -100,7 +133,7 @@ class MHM(fm.TimeComponent):
         self.cwd = cwd  # needed for @fm.tools.execute_in_cwd
         # mHM always has hourly stepping
         self.step = timedelta(hours=1)
-        self.meteo_timestep = meteo_time_step
+        self.meteo_timestep = meteo_timestep
         self.meteo_inputs = _get_meteo_inputs(self.INPUT_NAMES)
 
         if self.meteo_inputs and self.meteo_timestep not in [1, 24]:
@@ -146,7 +179,6 @@ class MHM(fm.TimeComponent):
             self.time += timedelta(days=min(day, 0), hours=min(hour, 0))
 
         # store Grid specifications
-        self.gridspec = {}
         # get grid info l0 (swap rows/cols to get "ij" indexing)
         nrows, ncols, __, xll, yll, cell_size, no_data = mhm.get.l0_domain_info()
         self.no_data = no_data
@@ -189,7 +221,7 @@ class MHM(fm.TimeComponent):
         self.create_connector()
 
     def _connect(self, start_time):
-        push_data = {var: self._get(var) for var in self.OUTPUT_NAMES}
+        push_data = {var: mhm.get_variable(var) for var in self.OUTPUT_NAMES}
         self.try_connect(start_time=start_time, push_data=push_data)
 
     @fm.tools.execute_in_cwd
