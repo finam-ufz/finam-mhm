@@ -11,8 +11,6 @@ from mhm import download_test
 
 import finam_mhm as fm_mhm
 
-# start_date = datetime(1993, 1, 1)
-# end_date = datetime(1993, 12, 31)
 start_date = datetime(1990, 1, 1)
 end_date = datetime(1993, 12, 31)
 day = timedelta(days=1)

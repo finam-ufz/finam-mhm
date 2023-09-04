@@ -233,7 +233,7 @@ class MHM(fm.TimeComponent):
         self.gridspec["L2"] = fm.EsriGrid(
             ncols=ncols, nrows=nrows, cellsize=cell_size, xllcorner=xll, yllcorner=yll
         )
-        for var in OUTPUT_META:
+        for var, meta in OUTPUT_META.items():
             grid_name = _get_grid_name(var)
             self.outputs.add(
                 name=var,
@@ -241,9 +241,9 @@ class MHM(fm.TimeComponent):
                 grid=self.gridspec[grid_name],
                 missing_value=self.no_data,
                 _FillValue=self.no_data,
-                **OUTPUT_META[var],
+                **meta,
             )
-        for var in OUTPUT_HORIZONS_META:
+        for var, meta in OUTPUT_HORIZONS_META.items():
             grid_name = _get_grid_name(var)
             for horizon in range(1, self.horizons + 1):
                 self.outputs.add(
@@ -252,7 +252,7 @@ class MHM(fm.TimeComponent):
                     grid=self.gridspec[grid_name],
                     missing_value=self.no_data,
                     _FillValue=self.no_data,
-                    **OUTPUT_HORIZONS_META[var],
+                    **meta,
                 )
         for var in self.INPUT_NAMES:
             grid_name = _get_grid_name(var)
