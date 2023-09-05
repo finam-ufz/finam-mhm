@@ -30,17 +30,16 @@ mhm = fm_mhm.MHM(
 )
 # netcdf writing files
 writer = fm_nc.NetCdfTimedWriter(
-    path=here / "AET_N_couple.nc",
-    inputs={"AET_L01": fm_nc.Layer(var="AET_L01", xyz=("x", "y"))},
+    path=here / "qmod_couple.nc",
+    inputs={"QMOD": fm_nc.Layer(var="QMOD", xyz=("x", "y"))},
     time_var="time",
     step=day,
-    inputs_units={"AET_L01": "mm / d"},
 )
 
 composition = fm.Composition([pre_reader, mhm, writer])
 composition.initialize()
 
 pre_reader["pre"] >> mhm.inputs["METEO_PRE"]
-mhm.outputs["L1_AET_L01"] >> fm.adapters.AvgOverTime() >> writer.inputs["AET_L01"]
+mhm.outputs["L11_QMOD"] >> writer.inputs["QMOD"]
 
 composition.run(start_time=start_date, end_time=end_date)
