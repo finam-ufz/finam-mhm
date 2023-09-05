@@ -7,40 +7,37 @@ from pathlib import Path
 
 import finam as fm
 import finam_netcdf as fm_nc
+import finam_plot as fm_plt
 from mhm import download_test
 
 import finam_mhm as fm_mhm
 
 start_date = datetime(1990, 1, 1)
-end_date = datetime(1993, 12, 31)
 day = timedelta(days=1)
 here = Path(__file__).parent
 test_domain = here / "test_domain"
 shutil.rmtree(test_domain, ignore_errors=True)
 
-download_test(path=test_domain, domain=1)
+download_test(path=test_domain)
 
-pre_reader = fm_nc.NetCdfReader(test_domain / "input" / "meteo" / "pre" / "pre.nc")
-
-mhm = fm_mhm.MHM(
-    cwd=test_domain,
-    input_names=["METEO_PRE"],
-    meteo_timestep=24,
-    ignore_input_grid=True,
-)
+mhm = fm_mhm.MHM(cwd=test_domain)
 # netcdf writing files
 writer = fm_nc.NetCdfTimedWriter(
-    path=here / "AET_N_couple.nc",
-    inputs={"AET_L01": fm_nc.Layer(var="AET_L01", xyz=("x", "y"))},
+    path=here / "aet.nc",
+    inputs={
+        "AET_L01": fm_nc.Layer(var="AET_L01", xyz=("x", "y")),
+        "AET_L02": fm_nc.Layer(var="AET_L02", xyz=("x", "y")),
+        "AET": fm_nc.Layer(var="AET", xyz=("x", "y")),
+    },
     time_var="time",
     step=day,
-    inputs_units={"AET_L01": "mm / d"},
 )
 
-composition = fm.Composition([pre_reader, mhm, writer])
+composition = fm.Composition([mhm, writer])
 composition.initialize()
 
-pre_reader["pre"] >> mhm.inputs["METEO_PRE"]
 mhm.outputs["L1_AET_L01"] >> fm.adapters.AvgOverTime() >> writer.inputs["AET_L01"]
+mhm.outputs["L1_AET_L02"] >> fm.adapters.AvgOverTime() >> writer.inputs["AET_L02"]
+mhm.outputs["L1_AET"] >> fm.adapters.AvgOverTime() >> writer.inputs["AET"]
 
-composition.run(start_time=start_date, end_time=end_date)
+composition.run(end_time=datetime(1994, 1, 1))
