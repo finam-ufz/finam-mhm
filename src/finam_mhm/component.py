@@ -31,7 +31,7 @@ OUTPUT_META = {
     "L1_AETSEALED": dict(
         units="mm / h", long_name="Real evap. from free water surfaces"
     ),
-    "L1_TOTAL_RUNOFF": dict(units="m^3 / h", long_name="Generated runoff"),  # Q (11)
+    "L1_TOTAL_RUNOFF": dict(units="mm / h", long_name="Generated runoff"),  # Q (11)
     "L1_RUNOFFSEAL": dict(
         units="mm / h", long_name="Direct runoff from impervious areas"
     ),
