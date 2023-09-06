@@ -127,11 +127,12 @@ examples/test_domain
 examples/qmod.nc
 examples/qmod_couple.nc
 examples/aet.nc
+examples/*.csv
+tests/runoff_out.csv
 
 /docs/build/
 /docs/finam_mhm.*
 /docs/modules.rst
-*.csv
 
 *.DS_Store
 
