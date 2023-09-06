@@ -12,16 +12,12 @@ from mhm import download_test
 
 import finam_mhm as fm_mhm
 
-start_date = datetime(1990, 1, 1)
-day = timedelta(days=1)
 here = Path(__file__).parent
 test_domain = here / "test_domain"
 shutil.rmtree(test_domain, ignore_errors=True)
-
 download_test(path=test_domain)
 
 mhm = fm_mhm.MHM(cwd=test_domain)
-# netcdf writing files
 writer = fm_nc.NetCdfTimedWriter(
     path=here / "aet.nc",
     inputs={
@@ -30,7 +26,7 @@ writer = fm_nc.NetCdfTimedWriter(
         "AET": fm_nc.Layer(var="AET", xyz=("x", "y")),
     },
     time_var="time",
-    step=day,
+    step=timedelta(days=1),
 )
 
 composition = fm.Composition([mhm, writer])
