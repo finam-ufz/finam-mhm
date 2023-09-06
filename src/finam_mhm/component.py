@@ -3,7 +3,9 @@ FINAM mHM module.
 """
 # pylint: disable=R1735
 from datetime import datetime, timedelta
+from pathlib import Path
 
+import f90nml
 import finam as fm
 import mhm
 import numpy as np
@@ -45,10 +47,14 @@ OUTPUT_META = {
     "L1_SOILMOIST_VOL_ALL": dict(
         units="1", long_name="average soil moisture over all layers"
     ),  # SM_Lall (5)
+}
+"""dict: meta information about available outputs in mHM."""
+
+MRM_OUTPUT_META = {
     "L11_QMOD": dict(units="m^3 / s", long_name="Simulated discharge"),
     "L11_QOUT": dict(units="m^3 / s", long_name="Total outflow from cells"),
 }
-"""dict: meta information about available outputs in mHM."""
+"""dict: meta information about available outputs in mRM."""
 
 OUTPUT_HORIZONS_META = {
     "L1_SOILMOIST": dict(
@@ -286,7 +292,11 @@ class MHM(fm.TimeComponent):
         self.gridspec = {}
         self.no_data = None
         self.number_of_horizons = None
-
+        self.config = f90nml.read(Path(cwd) / namelist_mhm).todict()
+        # check mrm case
+        case = self.config.get("processselection", {}).get("processcase", [])
+        mrm_set = case[7] if len(case) >= 8 else None
+        self.mrm_active = mrm_set is not None and mrm_set > 0
         self.OUTPUT_NAMES = None
         self.INPUT_NAMES = (
             [] if input_names is None else [n.upper() for n in input_names]
@@ -349,6 +359,8 @@ class MHM(fm.TimeComponent):
         self.number_of_horizons = mhm.get.number_of_horizons()
         # prepare outputs
         self.OUTPUT_NAMES = list(OUTPUT_META)
+        if self.mrm_active:
+            self.OUTPUT_NAMES += list(MRM_OUTPUT_META)
         self.OUTPUT_NAMES += [
             _horizon_name(var, horizon)
             for var in OUTPUT_HORIZONS_META
@@ -379,11 +391,16 @@ class MHM(fm.TimeComponent):
         self.gridspec["L1"] = fm.EsriGrid(
             ncols=ncols, nrows=nrows, cellsize=cell_size, xllcorner=xll, yllcorner=yll
         )
-        # get grid info l11 (swap rows/cols to get "ij" indexing)
-        nrows, ncols, __, xll, yll, cell_size, no_data = mhm.get.l11_domain_info()
-        self.gridspec["L11"] = fm.EsriGrid(
-            ncols=ncols, nrows=nrows, cellsize=cell_size, xllcorner=xll, yllcorner=yll
-        )
+        if self.mrm_active:
+            # get grid info l11 (swap rows/cols to get "ij" indexing)
+            nrows, ncols, __, xll, yll, cell_size, no_data = mhm.get.l11_domain_info()
+            self.gridspec["L11"] = fm.EsriGrid(
+                ncols=ncols,
+                nrows=nrows,
+                cellsize=cell_size,
+                xllcorner=xll,
+                yllcorner=yll,
+            )
         # get grid info l2 (swap rows/cols to get "ij" indexing)
         nrows, ncols, __, xll, yll, cell_size, no_data = mhm.get.l2_domain_info()
         self.gridspec["L2"] = fm.EsriGrid(
@@ -399,6 +416,17 @@ class MHM(fm.TimeComponent):
                 _FillValue=self.no_data,
                 **meta,
             )
+        if self.mrm_active:
+            for var, meta in MRM_OUTPUT_META.items():
+                grid_name = _get_grid_name(var)
+                self.outputs.add(
+                    name=var,
+                    time=self.time,
+                    grid=self.gridspec[grid_name],
+                    missing_value=self.no_data,
+                    _FillValue=self.no_data,
+                    **meta,
+                )
         for var, meta in OUTPUT_CALC_META.items():
             grid_name = _get_grid_name(var)
             self.outputs.add(
@@ -457,6 +485,8 @@ class MHM(fm.TimeComponent):
 
     def _connect(self, start_time):
         push_data = {var: mhm.get_variable(var) for var in OUTPUT_META}
+        if self.mrm_active:
+            push_data.update({var: mhm.get_variable(var) for var in MRM_OUTPUT_META})
         push_data.update({var: func() for var, func in OUTPUT_CALC.items()})
         push_data.update(
             {
@@ -502,6 +532,14 @@ class MHM(fm.TimeComponent):
                 data=mhm.get_variable(var),
                 time=self.time,
             )
+        if self.mrm_active:
+            for var in OUTPUT_META:
+                if not self.outputs[var].has_targets:
+                    continue
+                self.outputs[var].push_data(
+                    data=mhm.get_variable(var),
+                    time=self.time,
+                )
         for var, func in OUTPUT_CALC.items():
             if not self.outputs[var].has_targets:
                 continue

@@ -37,6 +37,7 @@ dependencies = [
   "numpy>=1.17.0",
   "mhm>=5.13.1",
   "finam>=0.4",
+  "f90nml",
 ]
 
 [project.urls]
