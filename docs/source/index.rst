@@ -15,7 +15,7 @@ Installation:
 
     pip install git+https://git.ufz.de/FINAM/finam-mhm.git
 
-For available components, see the :doc:`api/index`.
+For available components, see the :doc:`api`.
 
 Usage
 -----
@@ -37,4 +37,4 @@ Information about the API of finam-mhm.
 .. toctree::
     :maxdepth: 1
 
-    api/index
+    api

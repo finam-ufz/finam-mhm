@@ -1,4 +1,14 @@
 import datetime
+from pprint import pformat
+
+from sphinx.util import inspect
+
+
+def object_description(object) -> str:
+    return pformat(object, indent=2, sort_dicts=False)
+
+
+inspect.object_description = object_description
 
 # Configuration file for the Sphinx documentation builder.
 #
