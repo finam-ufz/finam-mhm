@@ -1,5 +1,5 @@
 """
-Common constants giving information about available IO.
+Common constants giving information about available IO and their meta-data.
 
 Constants
 =========
@@ -16,16 +16,28 @@ Constants
 ----
 
 .. autodata:: OUTPUT_META
+    :no-value:
+.. pprint:: OUTPUT_META
 
 .. autodata:: OUTPUT_HORIZONS_META
+    :no-value:
+.. pprint:: OUTPUT_HORIZONS_META
 
 .. autodata:: OUTPUT_CALC_META
+    :no-value:
+.. pprint:: OUTPUT_CALC_META
 
 .. autodata:: OUTPUT_CALC_HORIZONS_META
+    :no-value:
+.. pprint:: OUTPUT_CALC_HORIZONS_META
 
 .. autodata:: MRM_OUTPUT_META
+    :no-value:
+.. pprint:: MRM_OUTPUT_META
 
 .. autodata:: INPUT_UNITS
+    :no-value:
+.. pprint:: INPUT_UNITS
 
 """
 # pylint: disable=R1735
@@ -70,13 +82,13 @@ OUTPUT_META = {
         units="1", long_name="average soil moisture over all layers"
     ),  # SM_Lall (5)
 }
-"""dict: meta information about available outputs in mHM."""
+"""meta information about available outputs in mHM."""
 
 MRM_OUTPUT_META = {
     "L11_QMOD": dict(units="m^3 / s", long_name="Simulated discharge"),
     "L11_QOUT": dict(units="m^3 / s", long_name="Total outflow from cells"),
 }
-"""dict: meta information about available outputs in mRM."""
+"""meta information about available outputs in mRM."""
 
 OUTPUT_HORIZONS_META = {
     "L1_SOILMOIST": dict(
@@ -98,7 +110,7 @@ OUTPUT_HORIZONS_META = {
     # L1_SNOW
     # L1_THROUGHFALL
 }
-"""dict: meta information about available outputs per horizon in mHM."""
+"""meta information about available outputs per horizon in mHM."""
 
 OUTPUT_CALC_META = {
     # sum(aETSoil(horizons)) * fNotSealed + aETCanopy + aETSealed * fSealed
@@ -124,7 +136,7 @@ OUTPUT_CALC_META = {
         units="mm / h", long_name="groundwater recharge"
     ),  # recharge (16)
 }
-"""dict: meta information about calculated outputs in mHM."""
+"""meta information about calculated outputs in mHM."""
 
 OUTPUT_CALC_HORIZONS_META = {
     # infilSoil(horizon) * fNotSealed
@@ -136,10 +148,10 @@ OUTPUT_CALC_HORIZONS_META = {
         units="mm / h", long_name="actual Evapotranspiration from soil layer {n}"
     ),  # aET_Lxx (19)
 }
-"""dict: meta information about calculated outputs per horizon in mHM."""
+"""meta information about calculated outputs per horizon in mHM."""
 
 INPUT_UNITS = {
-    "L0_GRIDDED_LAI": "1",
+    # "L0_GRIDDED_LAI": "1",
     "METEO_PRE": "mm / {ts}",
     "METEO_TEMP": "degC",
     "METEO_PET": "mm / {ts}",
@@ -152,10 +164,10 @@ INPUT_UNITS = {
     "METEO_STRD": "W m-2",
     "METEO_TANN": "degC",
 }
-"""dict: units of the available inputs in mHM."""
+"""units of the available inputs in mHM."""
 
 HOURS_TO_TIMESTEP = {1: "h", 24: "d"}
-"""dict: timestep string from hours."""
+"""timestep string from hours."""
 
 
 def _fill_var(var, grid="l1"):

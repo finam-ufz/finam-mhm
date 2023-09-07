@@ -1,14 +1,46 @@
 import datetime
-from pprint import pformat
+import json
+from importlib import import_module
 
-from sphinx.util import inspect
+from docutils import nodes
+from docutils.parsers.rst import Directive
+from sphinx import addnodes
+
+# from sphinx.util import inspect
+# def object_description(object) -> str:
+#     return pformat(object, indent=2, sort_dicts=False).replace("\n", "\r\n")
+# inspect.object_description = object_description
 
 
-def object_description(object) -> str:
-    return pformat(object, indent=2, sort_dicts=False)
+def ppdict(var):
+    return str(json.dumps(var, sort_keys=False, indent=2))
 
 
-inspect.object_description = object_description
+# https://github.com/sphinx-doc/sphinx/issues/11548
+class PrettyPrintIterable(Directive):
+    """
+    Definition of a custom directive to pretty-print an iterable object.
+
+    This is used in place of the automatic API documentation
+    only for module variables which would just print a long signature.
+    """
+
+    required_arguments = 1
+
+    def run(self):  # noqa D102
+        member_name = self.arguments[0]
+        module = import_module("finam_mhm")
+        member = getattr(module, member_name)
+        code = ppdict(member)
+        literal = nodes.literal_block(code, code)
+        literal["language"] = "python"
+
+        return [addnodes.desc_content("", literal)]
+
+
+def setup(app):
+    app.add_directive("pprint", PrettyPrintIterable)
+
 
 # Configuration file for the Sphinx documentation builder.
 #
