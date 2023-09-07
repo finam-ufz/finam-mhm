@@ -1,7 +1,6 @@
 """
 FINAM mHM module.
 """
-# pylint: disable=R1735
 from datetime import datetime, timedelta
 from pathlib import Path
 

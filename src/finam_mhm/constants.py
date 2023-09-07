@@ -28,7 +28,7 @@ Constants
 .. autodata:: INPUT_UNITS
 
 """
-
+# pylint: disable=R1735
 import mhm
 import numpy as np
 
