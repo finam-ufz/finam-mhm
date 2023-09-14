@@ -5,7 +5,7 @@ stages:
   - build
   - docs
   - deploy
-  # - release
+  - release
 
 check:
   stage: test
@@ -65,29 +65,29 @@ pages:
   only:
     - main
 
-# pypi_test_release:
-#   stage: release
-#   dependencies:
-#     - build
-#   script:
-#     - pip install twine
-#     - python -m twine upload --skip-existing -r testpypi -u __token__ -p ${TEST_PYPI_TOKEN} dist/*
-#   artifacts:
-#     paths:
-#       - dist
-#   only:
-#     - main
-#     - tags
+pypi_test_release:
+  stage: release
+  dependencies:
+    - build
+  script:
+    - pip install twine
+    - python -m twine upload --skip-existing -r testpypi -u __token__ -p ${TEST_PYPI_TOKEN} dist/*
+  artifacts:
+    paths:
+      - dist
+  only:
+    - main
+    - tags
 
-# pypi_release:
-#   stage: release
-#   dependencies:
-#     - build
-#   script:
-#     - pip install twine
-#     - python -m twine upload -u __token__ -p ${PYPI_TOKEN} dist/*
-#   artifacts:
-#     paths:
-#       - dist
-#   only:
-#     - tags
+pypi_release:
+  stage: release
+  dependencies:
+    - build
+  script:
+    - pip install twine
+    - python -m twine upload -u __token__ -p ${PYPI_TOKEN} dist/*
+  artifacts:
+    paths:
+      - dist
+  only:
+    - tags
