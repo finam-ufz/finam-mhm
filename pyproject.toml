@@ -1,21 +1,139 @@
 [build-system]
 requires = [
-    "setuptools>=42",
-    "wheel",
-    "setuptools_scm[toml]>=3.5",
+  "hatchling>=1.8.0",
+  "hatch-vcs",
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "hatchling.build"
 
-[tool.setuptools_scm]
-write_to = "src/finam_mhm_module/_version.py"
-write_to_template = "__version__ = '{version}'"
-local_scheme = "no-local-version"
+[project]
+requires-python = ">=3.8"
+name = "finam_mhm"
+description = "FINAM module for mHM."
+authors = [{name = "FINAM Developers", email = "finam@ufz.de"}]
+readme = "README.md"
+license = "LGPL-3.0"
+dynamic = ["version"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Intended Audience :: End Users/Desktop",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+  "Natural Language :: English",
+  "Operating System :: Unix",
+  "Operating System :: Microsoft",
+  "Operating System :: MacOS",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Software Development",
+  "Topic :: Utilities",
+]
+dependencies = [
+  "numpy>=1.17.0",
+  "mhm>=5.13.1",
+  "finam",  # TODO: add v0.5 before release
+  "f90nml",
+]
+
+[project.urls]
+Homepage = "https://FINAM.pages.ufz.de/"
+Documentation = "https://FINAM.pages.ufz.de/finam-mhm/"
+Source = "https://git.ufz.de/FINAM/finam-mhm"
+Tracker = "https://git.ufz.de/FINAM/finam-mhm/-/issues"
+Changelog = "https://git.ufz.de/FINAM/finam-mhm/-/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+doc = [
+  "sphinx>=6",
+  "pydata-sphinx-theme==0.13",
+  "numpydoc>=1.1",
+  "sphinx-design>=0.4",
+  "myst-parser>=1.0",
+  "docutils>=0.18", # mdinclude with myst
+]
+test = ["pytest-cov>=3"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.version]
+source = "vcs"
 fallback_version = "0.0.0.dev0"
+
+[tool.hatch.version.raw-options]
+local_scheme = "no-local-version"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/finam_mhm/_version.py"
+template = "__version__ = '{version}'"
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/src",
+  "/tests",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/finam_mhm"]
 
 [tool.black]
 exclude = "_version.py"
 target-version = [
-    "py36",
-    "py37",
-    "py38",
+  "py38",
+  "py39"
 ]
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.coverage]
+[tool.coverage.run]
+source = ["finam"]
+omit = [
+  "*docs*",
+  "*examples*",
+  "*tests*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "def __repr__",
+  "def __str__",
+]
+
+[tool.pylint]
+[tool.pylint.master]
+extension-pkg-whitelist = [
+  "numpy",
+  "scipy",
+]
+ignore = [
+  "_version.py",
+]
+
+[tool.pylint.message_control]
+max-line-length = 120
+disable = [
+  "C0103", # ignore invalid-names like "x", "y"
+  "C0415", # ignore defered imports
+  "R0801", # ignore code duplications
+]
+
+[tool.pylint.reports]
+output-format = "colorized"
+
+[tool.pylint.design]
+max-args = 15
+max-locals = 20
+max-attributes = 20
+max-parents = 10
+min-public-methods = 0
+max-branches=20
