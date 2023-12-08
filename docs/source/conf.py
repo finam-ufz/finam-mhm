@@ -132,7 +132,7 @@ html_theme_options = {
         {
             "name": "FINAM homepage",
             "url": "https://finam.pages.ufz.de",
-            "icon": "_static/logo.svg",
+            "icon": "_static/logo_finam.svg",
             "type": "local",
             "attributes": {"target": "_blank"},
         },

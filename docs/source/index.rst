@@ -10,7 +10,18 @@ FINAM mHM
 
     self
 
-mHM component for the `FINAM <https://finam.pages.ufz.de/>`_ model coupling framework.
+`mHM <https://mhm-ufz.org/>`_ component for the `FINAM <https://finam.pages.ufz.de/>`_ model coupling framework.
+
+.. image:: _static/logo.svg
+   :width: 200px
+   :align: center
+   :alt: FINAM-mHM Logo
+   :class: dark-light p-2
+
+The mesoscale Hydrologic Model (mHM) is based on accepted hydrological conceptualizations
+and is able to reproduce as accurately as possible not only observed discharge hydrographs
+at any point within a basin but also the distribution of soil moisture among other state variables and fluxes.
+
 
 Quickstart
 ----------
