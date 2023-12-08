@@ -4,6 +4,12 @@
 FINAM mHM
 =========
 
+.. toctree::
+    :hidden:
+    :maxdepth: 1
+
+    self
+
 mHM component for the `FINAM <https://finam.pages.ufz.de/>`_ model coupling framework.
 
 Quickstart
@@ -13,7 +19,7 @@ Installation:
 
 .. code-block:: bash
 
-    pip install git+https://git.ufz.de/FINAM/finam-mhm.git
+    pip install finam-mhm
 
 For available components, see the :doc:`api`.
 
@@ -29,12 +35,21 @@ API References
 Information about the API of finam-mhm.
 
 .. toctree::
-    :hidden:
-    :maxdepth: 1
-
-    self
-
-.. toctree::
     :maxdepth: 1
 
     api
+
+About
+-----
+
+Further information about licensing, the developers team and the changelog of FINAM-mHM.
+
+.. toctree::
+    :maxdepth: 2
+
+    about/index
+
+License
+-------
+
+LGPLv3, Copyright © 2023, the FINAM developers from Helmholtz-Zentrum für Umweltforschung GmbH - UFZ. All rights reserved.

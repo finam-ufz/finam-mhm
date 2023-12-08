@@ -10,6 +10,7 @@ The FINAM project was created by the following people.
 
 - Jeisson Javier Leal Rojas (E-mail: <jeisson-javier.leal-rojas@ufz.de>)
 - Matthias Kelbling (E-mail: <matthias.kelbling@ufz.de>)
+- Martin Lange (E-mail: <martin.lange@ufz.de>)
 
 ## Supervisors
 

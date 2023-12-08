@@ -1,6 +1,6 @@
 # SOFTWARE LICENCE
 
-FINAM-mHM is a open-source FINAM component for mHM.
+FINAM-mHM is an open-source FINAM component for mHM.
 
 ## Copyright Notice
 
