@@ -33,7 +33,7 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 
 You should have received a copy of the GNU Lesser General Public License along with this program.
 It can be found in the files `COPYING` and `COPYING.LESSER` provided with this software.
-The complete GNU license text can also be found at < https://www.gnu.org/licenses/>.
+The complete GNU license text can also be found at <https://www.gnu.org/licenses/>.
 
 ## Redistribution
 
