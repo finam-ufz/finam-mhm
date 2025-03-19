@@ -37,7 +37,7 @@ class TestMHM(unittest.TestCase):
         end_date = datetime(1991, 1, 1)
 
         mhm = fm_mhm.MHM(cwd=self.test_domain)
-        csv = fm.modules.CsvWriter(
+        csv = fm.components.CsvWriter(
             path=self.here / "runoff_out.csv",
             inputs=["Runoff"],
             time_column="Time",
@@ -47,7 +47,6 @@ class TestMHM(unittest.TestCase):
         )
 
         composition = fm.Composition([mhm, csv])
-        composition.initialize()
 
         (
             mhm.outputs["L1_TOTAL_RUNOFF"]
