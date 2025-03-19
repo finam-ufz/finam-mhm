@@ -1,6 +1,7 @@
 """
 Simple setup using live view modules.
 """
+
 import shutil
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -22,13 +23,11 @@ runoff_viewer = fm_plt.ImagePlot(vmin=0.0, vmax=650, update_interval=24)
 # netcdf writing files
 writer = fm_nc.NetCdfTimedWriter(
     path=here / "qmod.nc",
-    inputs={"QMOD": fm_nc.Layer(var="QMOD", xyz=("x", "y"))},
-    time_var="time",
+    inputs=["QMOD"],
     step=timedelta(days=1),
 )
 
 composition = fm.Composition([mhm, writer, runoff_viewer])
-composition.initialize()
 
 mhm.outputs["L11_QMOD"] >> writer.inputs["QMOD"]
 mhm.outputs["L11_QMOD"] >> runoff_viewer.inputs["Grid"]

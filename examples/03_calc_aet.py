@@ -1,13 +1,13 @@
 """
 Simple coupling setup using live view modules.
 """
+
 import shutil
 from datetime import datetime, timedelta
 from pathlib import Path
 
 import finam as fm
 import finam_netcdf as fm_nc
-import finam_plot as fm_plt
 from mhm import download_test
 
 import finam_mhm as fm_mhm
@@ -20,17 +20,11 @@ download_test(path=test_domain)
 mhm = fm_mhm.MHM(cwd=test_domain)
 writer = fm_nc.NetCdfTimedWriter(
     path=here / "aet.nc",
-    inputs={
-        "AET_L01": fm_nc.Layer(var="AET_L01", xyz=("x", "y")),
-        "AET_L02": fm_nc.Layer(var="AET_L02", xyz=("x", "y")),
-        "AET": fm_nc.Layer(var="AET", xyz=("x", "y")),
-    },
-    time_var="time",
+    inputs=["AET_L01", "AET_L02", "AET"],
     step=timedelta(days=1),
 )
 
 composition = fm.Composition([mhm, writer])
-composition.initialize()
 
 mhm.outputs["L1_AET_L01"] >> fm.adapters.AvgOverTime() >> writer.inputs["AET_L01"]
 mhm.outputs["L1_AET_L02"] >> fm.adapters.AvgOverTime() >> writer.inputs["AET_L02"]

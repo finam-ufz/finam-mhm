@@ -1,6 +1,7 @@
 """
 Meteo coupling setup.
 """
+
 import shutil
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -30,13 +31,11 @@ mhm = fm_mhm.MHM(
 # netcdf writing files
 writer = fm_nc.NetCdfTimedWriter(
     path=here / "qmod_couple.nc",
-    inputs={"QMOD": fm_nc.Layer(var="QMOD", xyz=("x", "y"))},
-    time_var="time",
+    inputs=["QMOD"],
     step=timedelta(days=1),
 )
 
 composition = fm.Composition([pre_reader, mhm, writer])
-composition.initialize()
 
 pre_reader["pre"] >> mhm.inputs["METEO_PRE"]
 mhm.outputs["L11_QMOD"] >> writer.inputs["QMOD"]

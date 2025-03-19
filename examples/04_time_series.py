@@ -1,6 +1,7 @@
 """
 CSV output of single cell runoff.
 """
+
 import datetime as dt
 import shutil
 from pathlib import Path
@@ -18,7 +19,7 @@ download_test(path=test_domain)
 
 mhm = fm_mhm.MHM(cwd=test_domain)
 plot = fm_plt.TimeSeriesPlot(inputs=["Runoff"], update_interval=24)
-csv = fm.modules.CsvWriter(
+csv = fm.components.CsvWriter(
     path=here / "runoff.csv",
     inputs=["Runoff"],
     time_column="Time",
@@ -28,7 +29,6 @@ csv = fm.modules.CsvWriter(
 )
 
 composition = fm.Composition([mhm, plot, csv])
-composition.initialize()
 
 value = mhm.outputs["L1_TOTAL_RUNOFF"] >> fm.adapters.GridToValue(
     func=lambda x: x[0, 8, 4]
