@@ -370,6 +370,8 @@ class MHM(fm.TimeComponent):
                     data=func(horizon),
                     time=self.time,
                 )
+        if mhm.run.finished():
+            self.status = fm.ComponentStatus.FINISHED
 
     @fm.tools.execute_in_cwd
     def _finalize(self):
