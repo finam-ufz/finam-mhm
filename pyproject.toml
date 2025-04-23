@@ -38,7 +38,7 @@ classifiers = [
 dependencies = [
   "numpy>=1.17.0",
   "mhm>=5.13.1",
-  "finam>=1.0.0",
+  "finam>=1.0.1",
   "f90nml",
 ]
 
@@ -138,3 +138,4 @@ max-attributes = 20
 max-parents = 10
 min-public-methods = 0
 max-branches=20
+max-statements=60
