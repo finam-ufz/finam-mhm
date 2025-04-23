@@ -20,6 +20,7 @@ check:
 test:
   stage: test
   script:
+    - pip3 install 'numpy<2' # numpy 2 not yet supported by mhm
     - pip3 install --editable .[test]
     - python -m pytest --cov finam_mhm --cov-report term-missing --cov-report html:cov --cov-report xml:cov.xml -v tests/
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'

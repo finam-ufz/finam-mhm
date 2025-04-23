@@ -1,6 +1,7 @@
 """
 FINAM mHM module.
 """
+
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -84,6 +85,7 @@ class MHM(fm.TimeComponent):
     ):
         super().__init__()
         self.gridspec = {}
+        self.masks = {}
         self.no_data = None
         self.number_of_horizons = None
         self.config = f90nml.read(Path(cwd) / namelist_mhm).todict()
@@ -117,8 +119,7 @@ class MHM(fm.TimeComponent):
             )
             raise ValueError(msg)
 
-    @property
-    def next_time(self):
+    def _next_time(self):
         """Next pull time."""
         return self.time + self.step
 
@@ -180,11 +181,13 @@ class MHM(fm.TimeComponent):
         self.gridspec["L0"] = fm.EsriGrid(
             ncols=ncols, nrows=nrows, cellsize=cell_size, xllcorner=xll, yllcorner=yll
         )
+        self.masks["L0"] = mhm.get_mask("L0")
         # get grid info l1 (swap rows/cols to get "ij" indexing)
         nrows, ncols, __, xll, yll, cell_size, no_data = mhm.get.l1_domain_info()
         self.gridspec["L1"] = fm.EsriGrid(
             ncols=ncols, nrows=nrows, cellsize=cell_size, xllcorner=xll, yllcorner=yll
         )
+        self.masks["L1"] = mhm.get_mask("L1")
         if self.mrm_active:
             # get grid info l11 (swap rows/cols to get "ij" indexing)
             nrows, ncols, __, xll, yll, cell_size, no_data = mhm.get.l11_domain_info()
@@ -195,11 +198,13 @@ class MHM(fm.TimeComponent):
                 xllcorner=xll,
                 yllcorner=yll,
             )
+            self.masks["L11"] = mhm.get_mask("L11")
         # get grid info l2 (swap rows/cols to get "ij" indexing)
         nrows, ncols, __, xll, yll, cell_size, no_data = mhm.get.l2_domain_info()
         self.gridspec["L2"] = fm.EsriGrid(
             ncols=ncols, nrows=nrows, cellsize=cell_size, xllcorner=xll, yllcorner=yll
         )
+        self.masks["L2"] = mhm.get_mask("L2")
         for var, meta in OUTPUT_META.items():
             grid_name = _get_grid_name(var)
             self.outputs.add(
@@ -208,6 +213,7 @@ class MHM(fm.TimeComponent):
                 grid=self.gridspec[grid_name],
                 missing_value=self.no_data,
                 _FillValue=self.no_data,
+                mask=self.masks[grid_name],
                 **meta,
             )
         if self.mrm_active:
@@ -219,6 +225,7 @@ class MHM(fm.TimeComponent):
                     grid=self.gridspec[grid_name],
                     missing_value=self.no_data,
                     _FillValue=self.no_data,
+                    mask=self.masks[grid_name],
                     **meta,
                 )
         for var, meta in OUTPUT_CALC_META.items():
@@ -229,6 +236,7 @@ class MHM(fm.TimeComponent):
                 grid=self.gridspec[grid_name],
                 missing_value=self.no_data,
                 _FillValue=self.no_data,
+                mask=self.masks[grid_name],
                 **meta,
             )
         for var, meta in OUTPUT_HORIZONS_META.items():
@@ -245,6 +253,7 @@ class MHM(fm.TimeComponent):
                     grid=self.gridspec[grid_name],
                     missing_value=self.no_data,
                     _FillValue=self.no_data,
+                    mask=self.masks[grid_name],
                     **n_meta,
                 )
         for var, meta in OUTPUT_CALC_HORIZONS_META.items():
@@ -261,6 +270,7 @@ class MHM(fm.TimeComponent):
                     grid=self.gridspec[grid_name],
                     missing_value=self.no_data,
                     _FillValue=self.no_data,
+                    mask=self.masks[grid_name],
                     **n_meta,
                 )
         for var in self.INPUT_NAMES:
@@ -271,6 +281,7 @@ class MHM(fm.TimeComponent):
                 grid=None if self.ignore_input_grid else self.gridspec[grid_name],
                 missing_value=self.no_data,
                 _FillValue=self.no_data,
+                mask=None if self.ignore_input_grid else self.masks[grid_name],
                 units=INPUT_UNITS[var].format(
                     ts=HOURS_TO_TIMESTEP[self.meteo_timestep]
                 ),
@@ -327,7 +338,7 @@ class MHM(fm.TimeComponent):
                 time=self.time,
             )
         if self.mrm_active:
-            for var in OUTPUT_META:
+            for var in MRM_OUTPUT_META:
                 if not self.outputs[var].has_targets:
                     continue
                 self.outputs[var].push_data(
@@ -359,6 +370,8 @@ class MHM(fm.TimeComponent):
                     data=func(horizon),
                     time=self.time,
                 )
+        if mhm.run.finished():
+            self.status = fm.ComponentStatus.FINISHED
 
     @fm.tools.execute_in_cwd
     def _finalize(self):
