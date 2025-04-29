@@ -4,7 +4,7 @@ FINAM-mHM is an open-source FINAM component for mHM.
 
 ## Copyright Notice
 
-Copyright © 2023, the FINAM-mHM developers from Helmholtz-Zentrum für Umweltforschung GmbH - UFZ. All rights reserved.
+Copyright © 2021-2025, the FINAM-mHM developers from Helmholtz-Zentrum für Umweltforschung GmbH - UFZ. All rights reserved.
 
 ***The code is a property of:***
 

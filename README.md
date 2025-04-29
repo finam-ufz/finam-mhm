@@ -23,4 +23,4 @@ $ pip install finam-mhm
 
 ## License
 
-LGPLv3 (c) 2023 CHS- and FINAM-Developers from Helmholtz-Zentrum für Umweltforschung GmbH - UFZ. All rights reserved.
+LGPLv3 (c) 2021-2025 CHS- and FINAM-Developers from Helmholtz-Zentrum für Umweltforschung GmbH - UFZ. All rights reserved.
